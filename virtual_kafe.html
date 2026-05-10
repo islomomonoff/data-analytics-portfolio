@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Kafe — Buyurtma Tizimi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --cream: #f5efe6;
+            --dark: #1a1008;
+            --brown: #6b3a1f;
+            --amber: #d4821e;
+            --amber-light: #f0a845;
+            --gold: #c9963a;
+            --warm-white: #fdf8f0;
+            --text-muted: #8a7060;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--dark);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Atmospheric background */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 80% 60% at 20% 20%, rgba(180,90,20,0.18) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 80% at 80% 80%, rgba(100,40,10,0.22) 0%, transparent 60%),
+                radial-gradient(ellipse 40% 40% at 50% 50%, rgba(212,130,30,0.08) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Floating steam particles */
+        .steam-wrap {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            overflow: hidden;
+        }
+        .steam-particle {
+            position: absolute;
+            bottom: -20px;
+            width: 3px;
+            border-radius: 50%;
+            background: rgba(255,220,150,0.12);
+            animation: rise linear infinite;
+        }
+        @keyframes rise {
+            0% { transform: translateY(0) translateX(0) scaleX(1); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 0.4; }
+            100% { transform: translateY(-100vh) translateX(30px) scaleX(2); opacity: 0; }
+        }
+
+        .main-card {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 480px;
+            margin: 20px;
+            background: var(--warm-white);
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow:
+                0 40px 80px rgba(0,0,0,0.5),
+                0 0 0 1px rgba(201,150,58,0.2),
+                inset 0 1px 0 rgba(255,255,255,0.9);
+            animation: cardIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+
+        @keyframes cardIn {
+            from { opacity: 0; transform: translateY(40px) scale(0.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* Hero header */
+        .hero {
+            background: var(--dark);
+            padding: 36px 32px 28px;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -60px; right: -60px;
+            width: 220px; height: 220px;
+            background: radial-gradient(circle, rgba(212,130,30,0.25) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        .hero::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+        }
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(212,130,30,0.15);
+            border: 1px solid rgba(212,130,30,0.35);
+            color: var(--amber-light);
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            padding: 5px 12px;
+            border-radius: 20px;
+            margin-bottom: 14px;
+        }
+        .hero-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 42px;
+            font-weight: 900;
+            color: var(--warm-white);
+            line-height: 1;
+            letter-spacing: -1px;
+        }
+        .hero-title span {
+            color: var(--amber);
+        }
+        .hero-sub {
+            color: var(--text-muted);
+            font-size: 13px;
+            margin-top: 6px;
+            font-weight: 300;
+            letter-spacing: 0.3px;
+        }
+
+        /* Menu strip */
+        .menu-strip {
+            display: flex;
+            gap: 0;
+            border-bottom: 1px solid rgba(0,0,0,0.07);
+        }
+        .menu-item {
+            flex: 1;
+            padding: 16px 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-right: 1px solid rgba(0,0,0,0.06);
+            position: relative;
+            user-select: none;
+        }
+        .menu-item:last-child { border-right: none; }
+        .menu-item:hover { background: rgba(212,130,30,0.05); }
+        .menu-item.active {
+            background: var(--amber);
+        }
+        .menu-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px; left: 50%;
+            transform: translateX(-50%);
+            width: 0; height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 6px solid var(--amber);
+        }
+        .menu-item .icon {
+            font-size: 24px;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .menu-item .name {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--brown);
+            display: block;
+        }
+        .menu-item.active .name { color: white; }
+        .menu-item .price {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 300;
+            display: block;
+        }
+        .menu-item.active .price { color: rgba(255,255,255,0.8); }
+
+        /* Form area */
+        .form-area {
+            padding: 28px 28px 24px;
+        }
+
+        .field-group {
+            margin-bottom: 22px;
+        }
+        .field-label {
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        /* Quantity stepper */
+        .stepper {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            background: var(--cream);
+            border-radius: 12px;
+            border: 1.5px solid rgba(0,0,0,0.08);
+            overflow: hidden;
+            width: fit-content;
+        }
+        .stepper-btn {
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            font-weight: 300;
+            color: var(--brown);
+            cursor: pointer;
+            background: none;
+            border: none;
+            transition: background 0.15s, color 0.15s;
+            user-select: none;
+            line-height: 1;
+        }
+        .stepper-btn:hover { background: rgba(212,130,30,0.12); color: var(--amber); }
+        .stepper-btn:active { background: rgba(212,130,30,0.22); }
+        .stepper-val {
+            width: 56px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: 500;
+            color: var(--dark);
+            font-family: 'Playfair Display', serif;
+            border-left: 1.5px solid rgba(0,0,0,0.08);
+            border-right: 1.5px solid rgba(0,0,0,0.08);
+            padding: 0 8px;
+            line-height: 48px;
+        }
+
+        /* Price preview */
+        .price-preview {
+            background: var(--cream);
+            border-radius: 12px;
+            padding: 14px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 22px;
+            border: 1.5px solid rgba(0,0,0,0.07);
+        }
+        .price-preview .label {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+        .price-preview .value {
+            font-family: 'Playfair Display', serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--dark);
+        }
+        .discount-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #e8f5e9;
+            color: #2e7d32;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 9px;
+            border-radius: 20px;
+            letter-spacing: 0.5px;
+        }
+
+        /* Order button */
+        .order-btn {
+            width: 100%;
+            padding: 17px;
+            background: var(--dark);
+            color: var(--cream);
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.25s;
+            font-family: 'DM Sans', sans-serif;
+            position: relative;
+            overflow: hidden;
+        }
+        .order-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, var(--amber), var(--gold));
+            opacity: 0;
+            transition: opacity 0.25s;
+        }
+        .order-btn:hover::before { opacity: 1; }
+        .order-btn span { position: relative; z-index: 1; }
+        .order-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(212,130,30,0.35); }
+        .order-btn:active { transform: translateY(0); }
+
+        /* Receipt */
+        .receipt {
+            display: none;
+            margin: 0 28px 28px;
+            background: var(--dark);
+            border-radius: 16px;
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+            animation: receiptIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+        @keyframes receiptIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .receipt::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--amber), var(--amber-light), var(--amber));
+        }
+        .receipt-header {
+            font-size: 10px;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            text-align: center;
+            margin-bottom: 18px;
+        }
+        .receipt-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 7px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .receipt-row:last-of-type { border-bottom: none; }
+        .receipt-row .rlabel {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 300;
+        }
+        .receipt-row .rvalue {
+            font-size: 13px;
+            color: rgba(255,255,255,0.85);
+            font-weight: 400;
+        }
+        .receipt-total-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px solid rgba(212,130,30,0.3);
+        }
+        .receipt-total-label {
+            font-family: 'Playfair Display', serif;
+            font-size: 16px;
+            color: var(--amber-light);
+            font-weight: 700;
+        }
+        .receipt-total-amount {
+            font-family: 'Playfair Display', serif;
+            font-size: 22px;
+            color: white;
+            font-weight: 700;
+        }
+        .receipt-cheers {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 12px;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+        }
+        .receipt-discount {
+            color: #66bb6a;
+            font-size: 13px;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="steam-wrap" id="steamWrap"></div>
+
+<div class="main-card">
+    <div class="hero">
+        <div class="hero-badge">☕ Toshkent, 2025</div>
+        <div class="hero-title">Virtual<br><span>Kafe</span></div>
+        <div class="hero-sub">Buyurtmangizni qulay tarzda bering</div>
+    </div>
+
+    <!-- Menu selector -->
+    <div class="menu-strip" id="menuStrip">
+        <div class="menu-item active" data-value="5000" data-name="Choy" onclick="selectItem(this)">
+            <span class="icon">🍵</span>
+            <span class="name">Choy</span>
+            <span class="price">5 000 so'm</span>
+        </div>
+        <div class="menu-item" data-value="8000" data-name="Qahva" onclick="selectItem(this)">
+            <span class="icon">☕</span>
+            <span class="name">Qahva</span>
+            <span class="price">8 000 so'm</span>
+        </div>
+        <div class="menu-item" data-value="10000" data-name="Sharbat" onclick="selectItem(this)">
+            <span class="icon">🧃</span>
+            <span class="name">Sharbat</span>
+            <span class="price">10 000 so'm</span>
+        </div>
+    </div>
+
+    <div class="form-area">
+        <div class="field-group">
+            <span class="field-label">Stakan soni</span>
+            <div class="stepper">
+                <button class="stepper-btn" onclick="changeQty(-1)">−</button>
+                <div class="stepper-val" id="qtyDisplay">1</div>
+                <button class="stepper-btn" onclick="changeQty(1)">+</button>
+            </div>
+        </div>
+
+        <div class="price-preview">
+            <div>
+                <div class="label">Jami narx</div>
+                <div id="discountBadge" style="display:none; margin-top:4px;">
+                    <span class="discount-tag">✦ 10% chegirma</span>
+                </div>
+            </div>
+            <div class="value" id="pricePreview">5 000 so'm</div>
+        </div>
+
+        <button class="order-btn" onclick="hisobla()">
+            <span>Buyurtma berish →</span>
+        </button>
+    </div>
+
+    <div class="receipt" id="receipt">
+        <div class="receipt-header">— Buyurtma tafsilotlari —</div>
+        <div id="receiptBody"></div>
+        <div class="receipt-cheers" id="receiptCheers"></div>
+    </div>
+
+    <!-- Order History -->
+    <div style="margin:0 28px 28px;">
+        <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;">Oxirgi buyurtmalar</div>
+        <div id="historyList"></div>
+    </div>
+</div>
+
+<script>
+    // Steam particles
+    const steamWrap = document.getElementById('steamWrap');
+    for (let i = 0; i < 18; i++) {
+        const p = document.createElement('div');
+        p.className = 'steam-particle';
+        const size = Math.random() * 4 + 2;
+        p.style.cssText = `
+            left: ${Math.random() * 100}%;
+            width: ${size}px;
+            height: ${size * (Math.random() * 6 + 4)}px;
+            animation-duration: ${Math.random() * 8 + 5}s;
+            animation-delay: ${Math.random() * 8}s;
+            opacity: ${Math.random() * 0.15 + 0.05};
+        `;
+        steamWrap.appendChild(p);
+    }
+
+    let selectedPrice = 5000;
+    let selectedName = 'Choy';
+    let quantity = 1;
+
+    function selectItem(el) {
+        document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+        el.classList.add('active');
+        selectedPrice = parseInt(el.dataset.value);
+        selectedName = el.dataset.name;
+        updatePreview();
+        hideReceipt();
+    }
+
+    function changeQty(delta) {
+        quantity = Math.max(1, quantity + delta);
+        document.getElementById('qtyDisplay').textContent = quantity;
+        updatePreview();
+        hideReceipt();
+    }
+
+    function updatePreview() {
+        const total = selectedPrice * quantity;
+        let final = total;
+        const discBadge = document.getElementById('discountBadge');
+        if (quantity > 3) {
+            final = total * 0.9;
+            discBadge.style.display = 'block';
+        } else {
+            discBadge.style.display = 'none';
+        }
+        document.getElementById('pricePreview').textContent = formatNum(final) + ' so\'m';
+    }
+
+    function hideReceipt() {
+        document.getElementById('receipt').style.display = 'none';
+    }
+
+    function formatNum(n) {
+        return Math.round(n).toLocaleString('uz-UZ');
+    }
+
+    let orderHistory = [];
+
+    function hisobla() {
+        const total = selectedPrice * quantity;
+        let final = total;
+        let discountHTML = '';
+
+        if (quantity > 3) {
+            const discount = total * 0.1;
+            final = total - discount;
+            discountHTML = `
+                <div class="receipt-row">
+                    <span class="rlabel">Chegirma (10%)</span>
+                    <span class="rvalue receipt-discount">−${formatNum(discount)} so'm</span>
+                </div>
+            `;
+        }
+
+        const icons = { 'Choy': '🍵', 'Qahva': '☕', 'Sharbat': '🧃' };
+        const cheers = { 'Choy': 'Xush iching! 🍵', 'Qahva': 'Yoqimli ishtaha! ☕', 'Sharbat': 'Shirinlikka xush kelibsiz! 🧃' };
+
+        // Save to history
+        const now = new Date();
+        const timeStr = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+        orderHistory.unshift({ icon: icons[selectedName], name: selectedName, qty: quantity, total: final, time: timeStr });
+        if (orderHistory.length > 5) orderHistory.pop();
+        renderHistory();
+
+        document.getElementById('receiptBody').innerHTML = `
+            <div class="receipt-row">
+                <span class="rlabel">Ichimlik</span>
+                <span class="rvalue">${icons[selectedName]} ${selectedName}</span>
+            </div>
+            <div class="receipt-row">
+                <span class="rlabel">Miqdor</span>
+                <span class="rvalue">${quantity} stakan</span>
+            </div>
+            <div class="receipt-row">
+                <span class="rlabel">Birlik narxi</span>
+                <span class="rvalue">${formatNum(selectedPrice)} so'm</span>
+            </div>
+            <div class="receipt-row">
+                <span class="rlabel">Asl narx</span>
+                <span class="rvalue">${formatNum(total)} so'm</span>
+            </div>
+            ${discountHTML}
+            <div class="receipt-total-row">
+                <span class="receipt-total-label">To'lov uchun</span>
+                <span class="receipt-total-amount">${formatNum(final)} so'm</span>
+            </div>
+        `;
+
+        document.getElementById('receiptCheers').textContent = cheers[selectedName];
+
+        const receipt = document.getElementById('receipt');
+        receipt.style.display = 'block';
+        receipt.style.animation = 'none';
+        receipt.offsetHeight;
+        receipt.style.animation = '';
+        receipt.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function renderHistory() {
+        const el = document.getElementById('historyList');
+        if (!el) return;
+        if (orderHistory.length === 0) { el.innerHTML = '<div style="color:var(--text-muted);font-size:12px;text-align:center;padding:8px 0;">Hali buyurtma yo\'q</div>'; return; }
+        el.innerHTML = orderHistory.map(o => `
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(0,0,0,0.05);">
+                <span style="font-size:13px;color:var(--dark);">${o.icon} ${o.name} × ${o.qty}</span>
+                <span style="font-size:12px;color:var(--text-muted);">${formatNum(o.total)} so'm &nbsp;·&nbsp; ${o.time}</span>
+            </div>
+        `).join('');
+    }
+</script>
+</body>
+</html>
