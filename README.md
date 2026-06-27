@@ -45,7 +45,7 @@ My background in hospitality operations (**Hilton Garden Inn**) and sales gives 
 
 
 ---
-
+### 🧹 3. Data Cleaning with Python
 **Tools:** Python, pandas
 **Description:** Currently learning data cleaning with Python and pandas.
 **Skills:** Pandas (In Progress)
