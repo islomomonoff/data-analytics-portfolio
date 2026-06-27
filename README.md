@@ -34,7 +34,7 @@ My background in hospitality operations (**Hilton Garden Inn**) and sales gives 
 **Tools:** SQL  
 **Description:** Analysis of hotel occupancy rates, guest patterns, and operational efficiency using structured query language. Includes complex JOINs, aggregations, subqueries, and window functions.  
 **Skills:** Data cleaning, KPI calculation, operational reporting  
-> 📂 Coming soon
+
 
 ---
 
@@ -42,15 +42,14 @@ My background in hospitality operations (**Hilton Garden Inn**) and sales gives 
 **Tools:** Excel  
 **Description:** Interactive Excel dashboard tracking sales performance metrics, revenue trends, and team KPIs. Built with pivot tables, VLOOKUP, and dynamic charts.  
 **Skills:** Pivot tables, data visualization, business reporting  
-> 📂 Coming soon
+
 
 ---
 
-### 🐍 3. Data Cleaning with Python
-**Tools:** Python, pandas, numpy  
-**Description:** End-to-end data cleaning and exploratory data analysis (EDA) project using real-world dataset. Includes handling missing values, outlier detection, and visualization.  
-**Skills:** pandas, numpy, matplotlib, EDA  
-> 📂 Coming soon
+**Tools:** Python, pandas
+**Description:** Currently learning data cleaning with Python and pandas.
+**Skills:** Pandas (In Progress)
+
 
 ---
 
